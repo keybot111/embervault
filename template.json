@@ -1,0 +1,559 @@
+{
+  "$schema": "https://libauth.org/schemas/wallet-template-v0.schema.json",
+  "actions": {
+    "claimVault": {
+      "description": "Claim the vault by revealing the secret and signing with the beneficiary key.",
+      "icon": "receive",
+      "name": "Claim Vault",
+      "requirements": {
+        "participants": [
+          {
+            "role": "beneficiary",
+            "slots": {
+              "max": 1,
+              "min": 1
+            }
+          }
+        ]
+      },
+      "roles": {
+        "beneficiary": {
+          "description": "Reveals the vault secret and signs the claim.",
+          "icon": "receive",
+          "name": "Claim",
+          "requirements": {
+            "secrets": [
+              "beneficiaryKey"
+            ],
+            "variables": [
+              "claimedSatoshis",
+              "vaultSecret"
+            ]
+          }
+        }
+      },
+      "transaction": "claimVaultTransaction"
+    },
+    "createVault": {
+      "description": "Lock satoshis into a new EmberVault for the beneficiary, claimable with the secret and refundable by the funder after the refund height.",
+      "icon": "vault",
+      "name": "Create Vault",
+      "requirements": {
+        "participants": [
+          {
+            "role": "funder",
+            "slots": {
+              "max": 1,
+              "min": 1
+            }
+          },
+          {
+            "role": "beneficiary",
+            "slots": {
+              "max": 1,
+              "min": 1
+            }
+          }
+        ]
+      },
+      "roles": {
+        "beneficiary": {
+          "description": "The party whose key can claim the vault together with the secret.",
+          "icon": "receiver",
+          "name": "Receive vault",
+          "requirements": {
+            "secrets": [
+              "beneficiaryKey"
+            ],
+            "variables": [
+              "beneficiaryPublicKey"
+            ]
+          },
+          "generate": [
+            "beneficiaryKey"
+          ]
+        },
+        "funder": {
+          "description": "Provides the satoshis, the secret whose hash locks the vault, and the refund height.",
+          "icon": "sender",
+          "name": "Fund vault",
+          "requirements": {
+            "secrets": [
+              "funderKey"
+            ],
+            "variables": [
+              "vaultSatoshis",
+              "vaultSecret",
+              "refundHeight",
+              "funderPublicKey"
+            ]
+          },
+          "generate": [
+            "funderKey"
+          ]
+        }
+      },
+      "transaction": "createVaultTransaction"
+    },
+    "receive": {
+      "description": "Receive an unspecified amount of satoshis from an external sender.",
+      "icon": "receive",
+      "name": "Receive",
+      "requirements": {
+        "participants": [
+          {
+            "role": "funder",
+            "slots": {
+              "max": 1,
+              "min": 1
+            }
+          },
+          {
+            "role": "sender",
+            "slots": {
+              "min": 1
+            }
+          }
+        ]
+      },
+      "roles": {
+        "funder": {
+          "description": "Receive satoshis into the funder wallet.",
+          "icon": "receive",
+          "name": "Receive",
+          "requirements": {
+            "secrets": [
+              "funderKey"
+            ]
+          }
+        },
+        "sender": {
+          "description": "Send satoshis to the funder wallet.",
+          "icon": "send",
+          "name": "Send",
+          "requirements": {}
+        }
+      },
+      "transaction": "receiveTransaction"
+    },
+    "refundVault": {
+      "description": "Refund the vault to the funder once the refund height has passed (secret never revealed).",
+      "icon": "send",
+      "name": "Refund Vault",
+      "requirements": {
+        "participants": [
+          {
+            "role": "funder",
+            "slots": {
+              "max": 1,
+              "min": 1
+            }
+          }
+        ]
+      },
+      "roles": {
+        "funder": {
+          "description": "Signs the refund after the timeout.",
+          "icon": "send",
+          "name": "Refund",
+          "requirements": {
+            "secrets": [
+              "funderKey"
+            ],
+            "variables": [
+              "refundedSatoshis"
+            ]
+          }
+        }
+      },
+      "transaction": "refundVaultTransaction"
+    }
+  },
+  "defaults": {
+    "address": {
+      "generate": [
+        "funderKey"
+      ],
+      "lockingScript": "funderWalletLockingScript",
+      "role": "funder"
+    },
+    "change": {
+      "generate": [
+        "funderKey"
+      ],
+      "output": "changeOutput",
+      "role": "funder"
+    },
+    "receive": {
+      "generate": [
+        "funderKey"
+      ],
+      "output": "receiveOutput",
+      "role": "funder"
+    }
+  },
+  "description": "A two-party tip vault for Bitcoin Cash. A funder locks satoshis behind a secret (SHA-256 hashlock) for a beneficiary: the beneficiary claims by revealing the secret and signing, and the funder can refund after a block-height timeout if the secret is never revealed. Built for EmberTip payment pages (BCH BLAZE 2026, Build With XO bounty).",
+  "icon": "vault",
+  "inputs": {
+    "claimVaultInput": {
+      "description": "Spends the vault by revealing the secret and signing as the beneficiary.",
+      "icon": "receive",
+      "name": "Vault claim",
+      "unlockingScript": "unlockClaim"
+    },
+    "refundVaultInput": {
+      "description": "Spends the vault as a refund to the funder after the refund height.",
+      "icon": "send",
+      "name": "Vault refund",
+      "unlockingScript": "unlockRefund"
+    }
+  },
+  "lockingScripts": {
+    "beneficiaryWalletLockingScript": {
+      "actions": [],
+      "description": "Standard P2PKH wallet controlled by the beneficiary key; receives claim payouts.",
+      "icon": "wallet",
+      "lockingBytecode": "lockBeneficiaryWallet",
+      "lockingType": "p2pkh",
+      "name": "Beneficiary wallet",
+      "roles": {
+        "beneficiary": {
+          "actions": [],
+          "balance": {
+            "fungibleTokens": true,
+            "nonfungibleTokens": true,
+            "satoshis": true
+          },
+          "selectable": true,
+          "state": {
+            "secrets": [
+              "beneficiaryKey"
+            ],
+            "variables": []
+          }
+        }
+      },
+      "state": {
+        "secrets": [],
+        "variables": []
+      },
+      "unlockingBytecode": "unlockBeneficiaryWallet"
+    },
+    "funderWalletLockingScript": {
+      "actions": [],
+      "description": "Standard P2PKH wallet controlled by the funder key.",
+      "icon": "wallet",
+      "lockingBytecode": "lockFunderWallet",
+      "lockingType": "p2pkh",
+      "name": "Funder wallet",
+      "roles": {
+        "funder": {
+          "actions": [
+            {
+              "action": "receive",
+              "role": "funder",
+              "secrets": [
+                {
+                  "funderKey": null
+                }
+              ]
+            },
+            {
+              "action": "createVault",
+              "role": "funder",
+              "secrets": [
+                {
+                  "funderKey": null
+                }
+              ]
+            }
+          ],
+          "balance": {
+            "fungibleTokens": true,
+            "nonfungibleTokens": true,
+            "satoshis": true
+          },
+          "selectable": true,
+          "state": {
+            "secrets": [
+              "funderKey"
+            ],
+            "variables": []
+          }
+        }
+      },
+      "state": {
+        "secrets": [],
+        "variables": []
+      },
+      "unlockingBytecode": "unlockFunderWallet"
+    },
+    "vaultLockingScript": {
+      "actions": [],
+      "description": "Hashlock tip vault (P2SH20): the beneficiary claims by revealing the secret and signing; the funder refunds after the refund height.",
+      "icon": "vault",
+      "lockingBytecode": "vaultRedeemBytecode",
+      "lockingType": "p2sh",
+      "name": "EmberVault",
+      "roles": {
+        "beneficiary": {
+          "actions": [
+            {
+              "action": "claimVault",
+              "role": "beneficiary",
+              "secrets": [
+                {
+                  "beneficiaryKey": null
+                }
+              ]
+            }
+          ],
+          "balance": {
+            "satoshis": true
+          },
+          "selectable": true,
+          "state": {
+            "secrets": [
+              "beneficiaryKey"
+            ],
+            "variables": [
+              "vaultSecret",
+              "beneficiaryPublicKey"
+            ]
+          }
+        },
+        "funder": {
+          "actions": [
+            {
+              "action": "refundVault",
+              "role": "funder",
+              "secrets": [
+                {
+                  "funderKey": null
+                }
+              ]
+            }
+          ],
+          "balance": {
+            "satoshis": true
+          },
+          "selectable": true,
+          "state": {
+            "secrets": [
+              "funderKey"
+            ],
+            "variables": [
+              "refundHeight",
+              "funderPublicKey"
+            ]
+          }
+        }
+      },
+      "state": {
+        "secrets": [],
+        "variables": [
+          "vaultSecret",
+          "refundHeight",
+          "beneficiaryPublicKey",
+          "funderPublicKey"
+        ]
+      }
+    }
+  },
+  "name": "EmberVault — Hashlock Tip Vault",
+  "outputs": {
+    "changeOutput": {
+      "description": "Funds returned as change to the funder wallet.",
+      "icon": "receive",
+      "lockingScript": "funderWalletLockingScript",
+      "name": "Change",
+      "token": null
+    },
+    "claimPayoutOutput": {
+      "description": "Satoshis claimed from the vault by the beneficiary.",
+      "icon": "receive",
+      "lockingScript": "beneficiaryWalletLockingScript",
+      "name": "Claim payout",
+      "token": null,
+      "valueSatoshis": "$(<claimedSatoshis>)"
+    },
+    "receiveOutput": {
+      "description": "Satoshis received into the funder wallet.",
+      "icon": "receive",
+      "lockingScript": "funderWalletLockingScript",
+      "name": "Received funds",
+      "token": null
+    },
+    "refundPayoutOutput": {
+      "description": "Satoshis refunded from the vault to the funder.",
+      "icon": "send",
+      "lockingScript": "funderWalletLockingScript",
+      "name": "Refund payout",
+      "token": null,
+      "valueSatoshis": "$(<refundedSatoshis>)"
+    },
+    "vaultOutput": {
+      "description": "Satoshis locked in the vault: claimable by the beneficiary with the secret, refundable by the funder after block $(<refundHeight>).",
+      "icon": "vault",
+      "lockingScript": "vaultLockingScript",
+      "name": "EmberVault",
+      "token": null,
+      "valueSatoshis": "$(<vaultSatoshis>)"
+    }
+  },
+  "roles": {
+    "beneficiary": {
+      "description": "The party who claims the vault by revealing the secret and signing.",
+      "icon": "receiver",
+      "name": "Beneficiary"
+    },
+    "funder": {
+      "description": "The party who locks satoshis into the vault and can refund them after the timeout.",
+      "icon": "sender",
+      "name": "Funder"
+    },
+    "sender": {
+      "description": "An external party sending funds to the funder's wallet.",
+      "icon": "sender",
+      "name": "Sender"
+    }
+  },
+  "scripts": {
+    "lockBeneficiaryWallet": "OP_DUP OP_HASH160 <$(<beneficiaryKey.public_key> OP_HASH160)> OP_EQUALVERIFY OP_CHECKSIG",
+    "lockFunderWallet": "OP_DUP OP_HASH160 <$(<funderKey.public_key> OP_HASH160)> OP_EQUALVERIFY OP_CHECKSIG",
+    "unlockBeneficiaryWallet": "<beneficiaryKey.schnorr_signature.all_outputs> <beneficiaryKey.public_key>",
+    "unlockClaim": "<beneficiaryKey.schnorr_signature.all_outputs> <vaultSecret> OP_1",
+    "unlockFunderWallet": "<funderKey.schnorr_signature.all_outputs> <funderKey.public_key>",
+    "unlockRefund": "<funderKey.schnorr_signature.all_outputs> OP_0",
+    "vaultRedeemBytecode": "OP_IF OP_SHA256 <$(<vaultSecret> OP_SHA256)> OP_EQUALVERIFY <beneficiaryPublicKey> OP_CHECKSIG OP_ELSE <refundHeight> OP_CHECKLOCKTIMEVERIFY OP_DROP <funderPublicKey> OP_CHECKSIG OP_ENDIF"
+  },
+  "start": [
+    {
+      "action": "receive",
+      "generate": [
+        "funderKey"
+      ],
+      "role": "funder"
+    }
+  ],
+  "supported": [
+    "BCH_2023_05",
+    "BCH_2024_05",
+    "BCH_2025_05",
+    "BCH_2026_05"
+  ],
+  "transactions": {
+    "claimVaultTransaction": {
+      "composable": true,
+      "description": "The beneficiary claimed $(<claimedSatoshis>) satoshis by revealing the vault secret.",
+      "icon": "receive",
+      "inputs": [
+        {
+          "input": "claimVaultInput"
+        }
+      ],
+      "locktime": 0,
+      "name": "Vault Claimed",
+      "outputs": [
+        {
+          "output": "claimPayoutOutput"
+        }
+      ],
+      "version": 2
+    },
+    "createVaultTransaction": {
+      "composable": true,
+      "description": "Locked $(<vaultSatoshis>) satoshis into an EmberVault, refundable after block $(<refundHeight>).",
+      "icon": "vault",
+      "inputs": [],
+      "locktime": 0,
+      "name": "Vault Created",
+      "outputs": [
+        {
+          "output": "vaultOutput"
+        }
+      ],
+      "version": 2
+    },
+    "receiveTransaction": {
+      "composable": true,
+      "description": "Received satoshis from an external sender.",
+      "icon": "receive",
+      "inputs": [],
+      "locktime": 0,
+      "name": "Received",
+      "outputs": [
+        {
+          "output": "receiveOutput"
+        }
+      ],
+      "version": 2
+    },
+    "refundVaultTransaction": {
+      "composable": true,
+      "description": "The funder refunded $(<refundedSatoshis>) satoshis after the refund height passed.",
+      "icon": "send",
+      "inputs": [
+        {
+          "input": "refundVaultInput"
+        }
+      ],
+      "locktime": "$(<refundHeight>)",
+      "name": "Vault Refunded",
+      "outputs": [
+        {
+          "output": "refundPayoutOutput"
+        }
+      ],
+      "version": 2
+    }
+  },
+  "variables": {
+    "beneficiaryKey": {
+      "description": "The private key of the beneficiary: signs vault claims.",
+      "name": "Beneficiary Key",
+      "type": "private_key"
+    },
+    "claimedSatoshis": {
+      "description": "The amount of satoshis paid out to the beneficiary on claim (vault amount minus fee).",
+      "name": "Claimed Amount",
+      "type": "satoshis"
+    },
+    "funderKey": {
+      "description": "The private key of the funder: funds vaults, signs refunds.",
+      "name": "Funder Key",
+      "type": "private_key"
+    },
+    "refundHeight": {
+      "description": "The block height after which the funder may refund the vault.",
+      "name": "Refund Height",
+      "type": "integer"
+    },
+    "refundedSatoshis": {
+      "description": "The amount of satoshis paid back to the funder on refund (vault amount minus fee).",
+      "name": "Refunded Amount",
+      "type": "satoshis"
+    },
+    "vaultSatoshis": {
+      "description": "The amount of satoshis locked into the vault.",
+      "name": "Vault Amount",
+      "type": "satoshis"
+    },
+    "vaultSecret": {
+      "description": "The secret phrase whose SHA-256 hash locks the vault. Revealing it (with the beneficiary signature) claims the vault.",
+      "name": "Vault Secret",
+      "type": "string"
+    },
+    "beneficiaryPublicKey": {
+      "name": "Beneficiary Public Key",
+      "description": "The public key of the beneficiary key, shared at vault creation.",
+      "type": "public_key"
+    },
+    "funderPublicKey": {
+      "name": "Funder Public Key",
+      "description": "The public key of the funder key, shared at vault creation.",
+      "type": "public_key"
+    }
+  },
+  "version": "1"
+}

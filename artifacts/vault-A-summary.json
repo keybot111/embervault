@@ -1,0 +1,9 @@
+{
+  "tag": "A",
+  "vaultSatoshis": "20000",
+  "secret": "ember-harvest-2026",
+  "refundHeight": 335632,
+  "templateIdentifier": "93815e7e9eb749783bc04799a36230fdfab807e0bd5ad05ffaacf64a896acd11",
+  "createTxid": "c9627cbe9dde9dddb30a6f13fb42dbde41d256315ef2c5545428a94eb0678232",
+  "invitationIdentifier": "80241dc5f4a7bb8528ad546062c594f0"
+}

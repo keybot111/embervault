@@ -1,0 +1,9 @@
+{
+  "tag": "C",
+  "vaultSatoshis": "15000",
+  "secret": "ember-refund-c",
+  "refundHeight": 335573,
+  "templateIdentifier": "93815e7e9eb749783bc04799a36230fdfab807e0bd5ad05ffaacf64a896acd11",
+  "createTxid": "53a04ce451c62578ea830ac83c030a60c868dafb08c747d287c946fc76b5c6ab",
+  "invitationIdentifier": "cf6f3e84bd7efbffe7296de7c6e3ae58"
+}

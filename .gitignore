@@ -1,0 +1,5 @@
+node_modules/
+account*.json
+*.sqlite
+*.sqlite-journal
+.bridge/

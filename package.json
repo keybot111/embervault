@@ -1,0 +1,14 @@
+{
+  "name": "xo-embervault",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "EmberVault — a hashlock tip-vault XO template for BCH BLAZE 2026 (Build With XO bounty)",
+  "dependencies": {
+    "@bitauth/libauth": "^3.1.0-next.8",
+    "@xo-cash/engine": "next",
+    "@xo-cash/state": "latest",
+    "@xo-cash/templates": "latest",
+    "@xo-cash/utils": "latest"
+  }
+}

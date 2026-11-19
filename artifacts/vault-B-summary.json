@@ -1,0 +1,9 @@
+{
+  "tag": "B",
+  "vaultSatoshis": "15000",
+  "secret": "ember-refund-2026",
+  "refundHeight": 335629,
+  "templateIdentifier": "93815e7e9eb749783bc04799a36230fdfab807e0bd5ad05ffaacf64a896acd11",
+  "createTxid": "d3a3ff4aa01372c802ecdae1fc3b236600434e179d8752b8749d3227e709867d",
+  "invitationIdentifier": "eb7a915a59a8e754775c92e587be8d0a"
+}

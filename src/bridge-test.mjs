@@ -1,0 +1,11 @@
+process.env.BRIDGE_LISTEN_PORT = "50004";
+const { startBridge } = await import("./electrum-bridge.mjs");
+startBridge();
+await new Promise((r) => setTimeout(r, 1000));
+const { default: WebSocket } = await import("ws");
+const ws = new WebSocket("wss://127.0.0.1:50004", { rejectUnauthorized: false });
+ws.on("open", () => { console.log("WS OPEN"); ws.send(JSON.stringify({ id: 1, method: "server.version", params: ["probe", "1.4"] })); });
+ws.on("message", (m) => { console.log("WS MSG:", m.toString().slice(0, 140)); process.exit(0); });
+ws.on("error", (e) => { console.log("WS ERROR:", e.message); process.exit(1); });
+ws.on("close", (c) => { console.log("WS CLOSE:", c); });
+setTimeout(() => { console.log("TIMEOUT"); process.exit(2); }, 20000);

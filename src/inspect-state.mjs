@@ -1,0 +1,13 @@
+import { openEngine } from "./account.mjs";
+import { readFileSync } from "node:fs";
+const emberTemplate = JSON.parse(readFileSync(new URL("../template.json", import.meta.url), "utf8"));
+const { engine } = await openEngine();
+await engine.importTemplate(emberTemplate);
+const invs = await engine.listInvitations();
+console.log("invitations:", JSON.stringify(invs, (k, v) => typeof v === "bigint" ? v.toString() : v).slice(0, 600));
+const all = await engine.listUnspentOutputs();
+console.log("all unspent:", JSON.stringify(all, (k, v) => typeof v === "bigint" ? v.toString() : v).slice(0, 600));
+const spendable = await engine.listSpendableUnspentOutputs();
+console.log("spendable count:", spendable.length);
+await engine.stop();
+process.exit(0);
