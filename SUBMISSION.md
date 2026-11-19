@@ -1,8 +1,10 @@
 # EmberVault — Build With XO submission package (Syarat 4)
 
 Prepared 2026-11-18 morning (WIB) from the completed Syarat 1–3 work.
-Nothing here has been submitted anywhere. The feedback essay (Syarat 5)
-is intentionally NOT written here — it must be the entrant's own words.
+Submitted 2026-11-19: Build https://dorahacks.io/build/51322 (BCH BLAZE 2026,
+Mainnet Track), with the Build With XO bounty application attached and under
+review. The feedback essay (Syarat 5) was written personally by the entrant
+(502 words) and lives in ESSAY.md and in the Build description, verbatim.
 
 ## What this is
 
@@ -101,8 +103,9 @@ Still open before submitting this bounty:
       Caveat: no explicit statement was found that one Build can win both the
       Mainnet Track prize and the XO bounty; the only explicit non-exclusivity
       note covers Mainnet vs Media tracks.
-- [ ] Syarat 5 — the ~500-word feedback essay, written personally by
-      the entrant (AI-written submissions are explicitly rejected).
+- [x] Syarat 5 — the ~500-word feedback essay, written personally by
+      the entrant (502 words, 2026-11-19) and submitted verbatim in the
+      EmberVault Build description (https://dorahacks.io/build/51322).
 
 ## Notes for the essay (facts only — NOT essay text)
 
